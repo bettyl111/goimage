@@ -1,0 +1,970 @@
+{
+  "7": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "23": {
+    "inputs": {
+      "text": [
+        "256",
+        0
+      ],
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "26": {
+    "inputs": {
+      "guidance": 10,
+      "conditioning": [
+        "23",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Flux引导"
+    }
+  },
+  "31": {
+    "inputs": {
+      "unet_name": "flux1-dev-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "32": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "109": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "K采样器选择"
+    }
+  },
+  "111": {
+    "inputs": {
+      "noise_seed": [
+        "228",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "随机噪波"
+    }
+  },
+  "123": {
+    "inputs": {
+      "clip_name1": "t5xxl_fp8_e4m3fn.safetensors",
+      "clip_name2": "clip_l.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "双CLIP加载器"
+    }
+  },
+  "169": {
+    "inputs": {
+      "model": [
+        "244",
+        0
+      ]
+    },
+    "class_type": "FluxForwardOverrider",
+    "_meta": {
+      "title": "FluxForwardOverrider"
+    }
+  },
+  "188": {
+    "inputs": {
+      "noise": [
+        "111",
+        0
+      ],
+      "guider": [
+        "192",
+        0
+      ],
+      "sampler": [
+        "109",
+        0
+      ],
+      "sigmas": [
+        "191",
+        0
+      ],
+      "latent_image": [
+        "258",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "first block cache"
+    }
+  },
+  "191": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 25,
+      "denoise": 1,
+      "model": [
+        "195",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "基本调度器"
+    }
+  },
+  "192": {
+    "inputs": {
+      "model": [
+        "195",
+        0
+      ],
+      "conditioning": [
+        "238",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "基本引导器"
+    }
+  },
+  "195": {
+    "inputs": {
+      "residual_diff_threshold": 0,
+      "start_at": 0,
+      "end_at": 1,
+      "model": [
+        "272",
+        0
+      ]
+    },
+    "class_type": "ApplyFirstBlockCachePatchAdvanced",
+    "_meta": {
+      "title": "ApplyFirstBlockCachePatchAdvanced"
+    }
+  },
+  "213": {
+    "inputs": {
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "188",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE解码（分块）"
+    }
+  },
+  "228": {
+    "inputs": {
+      "seed": 1102607975704873
+    },
+    "class_type": "easy seed",
+    "_meta": {
+      "title": "随机种"
+    }
+  },
+  "235": {
+    "inputs": {
+      "preprocessor": "DepthAnythingPreprocessor",
+      "resolution": 1024,
+      "image": [
+        "264",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "238": {
+    "inputs": {
+      "positive": [
+        "26",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ],
+      "pixels": [
+        "235",
+        0
+      ]
+    },
+    "class_type": "InstructPixToPixConditioning",
+    "_meta": {
+      "title": "InstructPixToPix条件"
+    }
+  },
+  "244": {
+    "inputs": {
+      "lora_01": "flux1-depth-dev-lora.safetensors",
+      "strength_01": 0.7000000000000002,
+      "lora_02": "Beauty_Enahancer__Realistic_eyes_Flux.safetensors",
+      "strength_02": 0.30000000000000004,
+      "lora_03": "None",
+      "strength_03": 0.6000000000000001,
+      "lora_04": "None",
+      "strength_04": 0,
+      "model": [
+        "31",
+        0
+      ],
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "Lora Loader Stack (rgthree)"
+    }
+  },
+  "247": {
+    "inputs": {
+      "text": [
+        "256",
+        0
+      ],
+      "text2": "A couple"
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "255": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "213",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "256": {
+    "inputs": {
+      "from_translate": "chinese simplified",
+      "to_translate": "english",
+      "add_proxies": false,
+      "proxies": "",
+      "auth_data": "",
+      "service": "MyMemoryTranslator [free]",
+      "text": [
+        "257",
+        0
+      ],
+      "Show proxy": "proxy_hide",
+      "Show authorization": "authorization_hide",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "DeepTranslatorTextNode",
+    "_meta": {
+      "title": "Deep Translator Text Node"
+    }
+  },
+  "257": {
+    "inputs": {
+      "text": "一对情侣",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "258": {
+    "inputs": {
+      "width": [
+        "265",
+        0
+      ],
+      "height": [
+        "265",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "264": {
+    "inputs": {
+      "size": 1024,
+      "interpolation_mode": "bicubic",
+      "image": [
+        "282",
+        0
+      ]
+    },
+    "class_type": "JWImageResizeByLongerSide",
+    "_meta": {
+      "title": "Image Resize by Longer Side"
+    }
+  },
+  "265": {
+    "inputs": {
+      "image": [
+        "325",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "266": {
+    "inputs": {
+      "pulid_file": "pulid_flux_v0.9.1.safetensors"
+    },
+    "class_type": "PulidFluxModelLoader",
+    "_meta": {
+      "title": "Load PuLID Flux Model"
+    }
+  },
+  "267": {
+    "inputs": {},
+    "class_type": "PulidFluxEvaClipLoader",
+    "_meta": {
+      "title": "Load Eva Clip (PuLID Flux)"
+    }
+  },
+  "268": {
+    "inputs": {
+      "provider": "CUDA"
+    },
+    "class_type": "PulidFluxInsightFaceLoader",
+    "_meta": {
+      "title": "Load InsightFace (PuLID Flux)"
+    }
+  },
+  "269": {
+    "inputs": {
+      "weight": 1,
+      "start_at": 0,
+      "end_at": 1,
+      "model": [
+        "169",
+        0
+      ],
+      "pulid_flux": [
+        "266",
+        0
+      ],
+      "eva_clip": [
+        "267",
+        0
+      ],
+      "face_analysis": [
+        "268",
+        0
+      ],
+      "image": [
+        "270",
+        0
+      ],
+      "attn_mask": [
+        "315",
+        0
+      ]
+    },
+    "class_type": "ApplyPulidFlux",
+    "_meta": {
+      "title": "Apply PuLID Flux"
+    }
+  },
+  "270": {
+    "inputs": {
+      "image": "10009.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "272": {
+    "inputs": {
+      "weight": 1,
+      "start_at": 0,
+      "end_at": 1,
+      "model": [
+        "269",
+        0
+      ],
+      "pulid_flux": [
+        "266",
+        0
+      ],
+      "eva_clip": [
+        "267",
+        0
+      ],
+      "face_analysis": [
+        "268",
+        0
+      ],
+      "image": [
+        "274",
+        0
+      ],
+      "attn_mask": [
+        "315",
+        1
+      ]
+    },
+    "class_type": "ApplyPulidFlux",
+    "_meta": {
+      "title": "Apply PuLID Flux"
+    }
+  },
+  "274": {
+    "inputs": {
+      "image": "A3D9E8B9-DA20-4b79-B7A6-A5CF1BC06876.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "282": {
+    "inputs": {
+      "image": "1137264087.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "284": {
+    "inputs": {
+      "shape": "square",
+      "frames": 1,
+      "location_x": [
+        "296",
+        0
+      ],
+      "location_y": [
+        "301",
+        0
+      ],
+      "grow": 0,
+      "frame_width": [
+        "265",
+        0
+      ],
+      "frame_height": [
+        "265",
+        1
+      ],
+      "shape_width": [
+        "287",
+        3
+      ],
+      "shape_height": [
+        "287",
+        4
+      ]
+    },
+    "class_type": "CreateShapeMask",
+    "_meta": {
+      "title": "Create Shape Mask"
+    }
+  },
+  "287": {
+    "inputs": {
+      "padding": 0,
+      "padding_percent": 0.4000000000000001,
+      "index": 1,
+      "analysis_models": [
+        "288",
+        0
+      ],
+      "image": [
+        "264",
+        0
+      ]
+    },
+    "class_type": "FaceBoundingBox",
+    "_meta": {
+      "title": "Face Bounding Box"
+    }
+  },
+  "288": {
+    "inputs": {
+      "library": "insightface",
+      "provider": "CPU"
+    },
+    "class_type": "FaceAnalysisModels",
+    "_meta": {
+      "title": "Face Analysis Models"
+    }
+  },
+  "293": {
+    "inputs": {
+      "value": [
+        "287",
+        2
+      ],
+      "format_string": "{:04d}"
+    },
+    "class_type": "JWIntegerToString",
+    "_meta": {
+      "title": "Integer to String"
+    }
+  },
+  "294": {
+    "inputs": {
+      "text": [
+        "293",
+        0
+      ],
+      "PreviewTextNode_0": "0090",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "PreviewTextNode",
+    "_meta": {
+      "title": "Preview Text Node"
+    }
+  },
+  "296": {
+    "inputs": {
+      "operator": "+",
+      "a": [
+        "287",
+        1
+      ],
+      "b": [
+        "297",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "297": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "287",
+        3
+      ],
+      "b": [
+        "298",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "298": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "299": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "287",
+        4
+      ],
+      "b": [
+        "300",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "300": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "301": {
+    "inputs": {
+      "operator": "+",
+      "a": [
+        "287",
+        2
+      ],
+      "b": [
+        "299",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "302": {
+    "inputs": {
+      "padding": 0,
+      "padding_percent": 0.4000000000000001,
+      "index": 0,
+      "analysis_models": [
+        "288",
+        0
+      ],
+      "image": [
+        "264",
+        0
+      ]
+    },
+    "class_type": "FaceBoundingBox",
+    "_meta": {
+      "title": "Face Bounding Box"
+    }
+  },
+  "303": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "304": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "305": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "302",
+        4
+      ],
+      "b": [
+        "304",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "306": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "302",
+        3
+      ],
+      "b": [
+        "303",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "307": {
+    "inputs": {
+      "operator": "+",
+      "a": [
+        "302",
+        1
+      ],
+      "b": [
+        "306",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "308": {
+    "inputs": {
+      "operator": "+",
+      "a": [
+        "302",
+        2
+      ],
+      "b": [
+        "305",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "309": {
+    "inputs": {
+      "shape": "square",
+      "frames": 1,
+      "location_x": [
+        "307",
+        0
+      ],
+      "location_y": [
+        "308",
+        0
+      ],
+      "grow": 0,
+      "frame_width": [
+        "265",
+        0
+      ],
+      "frame_height": [
+        "265",
+        1
+      ],
+      "shape_width": [
+        "302",
+        3
+      ],
+      "shape_height": [
+        "302",
+        4
+      ]
+    },
+    "class_type": "CreateShapeMask",
+    "_meta": {
+      "title": "Create Shape Mask"
+    }
+  },
+  "315": {
+    "inputs": {
+      "shape": "square",
+      "frames": 1,
+      "location_x": [
+        "320",
+        0
+      ],
+      "location_y": [
+        "322",
+        0
+      ],
+      "grow": 0,
+      "frame_width": [
+        "265",
+        0
+      ],
+      "frame_height": [
+        "265",
+        1
+      ],
+      "shape_width": [
+        "317",
+        0
+      ],
+      "shape_height": [
+        "265",
+        1
+      ]
+    },
+    "class_type": "CreateShapeMask",
+    "_meta": {
+      "title": "Create Shape Mask"
+    }
+  },
+  "316": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "317": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "265",
+        0
+      ],
+      "b": [
+        "316",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "319": {
+    "inputs": {
+      "value": 4
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "320": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "265",
+        0
+      ],
+      "b": [
+        "319",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "321": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "322": {
+    "inputs": {
+      "operator": "/",
+      "a": [
+        "265",
+        1
+      ],
+      "b": [
+        "321",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: NumberCalculator",
+    "_meta": {
+      "title": "图层工具：数字计算器"
+    }
+  },
+  "325": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "interpolation": "bilinear",
+      "method": "stretch",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "264",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  }
+}

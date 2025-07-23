@@ -1,0 +1,8 @@
+go_image.zip
+*./zip
+temp_uploads
+temp_upload
+backend/user_generated_images
+backend/temp_upload
+backend/__pycache__
+go_image.zip

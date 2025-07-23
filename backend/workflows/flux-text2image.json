@@ -1,0 +1,321 @@
+{
+  "7": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "23": {
+    "inputs": {
+      "text": [
+        "256",
+        0
+      ],
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "31": {
+    "inputs": {
+      "unet_name": "flux1-dev-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "32": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "109": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "K采样器选择"
+    }
+  },
+  "111": {
+    "inputs": {
+      "noise_seed": [
+        "228",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "随机噪波"
+    }
+  },
+  "123": {
+    "inputs": {
+      "clip_name1": "t5xxl_fp8_e4m3fn.safetensors",
+      "clip_name2": "clip_l.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "双CLIP加载器"
+    }
+  },
+  "169": {
+    "inputs": {
+      "model": [
+        "244",
+        0
+      ]
+    },
+    "class_type": "FluxForwardOverrider",
+    "_meta": {
+      "title": "FluxForwardOverrider"
+    }
+  },
+  "188": {
+    "inputs": {
+      "noise": [
+        "111",
+        0
+      ],
+      "guider": [
+        "192",
+        0
+      ],
+      "sampler": [
+        "109",
+        0
+      ],
+      "sigmas": [
+        "191",
+        0
+      ],
+      "latent_image": [
+        "258",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "first block cache"
+    }
+  },
+  "191": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 25,
+      "denoise": 1,
+      "model": [
+        "195",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "基本调度器"
+    }
+  },
+  "192": {
+    "inputs": {
+      "model": [
+        "195",
+        0
+      ],
+      "conditioning": [
+        "264",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "基本引导器"
+    }
+  },
+  "195": {
+    "inputs": {
+      "residual_diff_threshold": 0,
+      "start_at": 0,
+      "end_at": 1,
+      "model": [
+        "169",
+        0
+      ]
+    },
+    "class_type": "ApplyFirstBlockCachePatchAdvanced",
+    "_meta": {
+      "title": "ApplyFirstBlockCachePatchAdvanced"
+    }
+  },
+  "228": {
+    "inputs": {
+      "seed": 1038865145273212
+    },
+    "class_type": "easy seed",
+    "_meta": {
+      "title": "随机种"
+    }
+  },
+  "244": {
+    "inputs": {
+      "lora_01": "None",
+      "strength_01": 0.7000000000000002,
+      "lora_02": "Beauty_Enahancer__Realistic_eyes_Flux.safetensors",
+      "strength_02": 0.3,
+      "lora_03": "None",
+      "strength_03": 0.6000000000000001,
+      "lora_04": "None",
+      "strength_04": 0,
+      "model": [
+        "31",
+        0
+      ],
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "Lora Loader Stack (rgthree)"
+    }
+  },
+  "247": {
+    "inputs": {
+      "text": [
+        "256",
+        0
+      ],
+      "text2": "A beautiful supermodel in a pink miniskirt stands on a runway with a straight face"
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "255": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "265",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "256": {
+    "inputs": {
+      "from_translate": "chinese simplified",
+      "to_translate": "english",
+      "add_proxies": false,
+      "proxies": "",
+      "auth_data": "",
+      "service": "MyMemoryTranslator [free]",
+      "text": [
+        "257",
+        0
+      ],
+      "Show proxy": "proxy_hide",
+      "Show authorization": "authorization_hide",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "DeepTranslatorTextNode",
+    "_meta": {
+      "title": "Deep Translator Text Node"
+    }
+  },
+  "257": {
+    "inputs": {
+      "text": "一个穿着粉色超短裙的美女超模站在t台上，正脸",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "258": {
+    "inputs": {
+      "width": 768,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "264": {
+    "inputs": {
+      "guidance": 10,
+      "conditioning": [
+        "23",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Flux引导"
+    }
+  },
+  "265": {
+    "inputs": {
+      "samples": [
+        "188",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  }
+}

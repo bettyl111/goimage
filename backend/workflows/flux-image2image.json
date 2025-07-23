@@ -1,0 +1,564 @@
+{
+  "7": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "17": {
+    "inputs": {
+      "image": "ae13630a-2181-42eb-a14d-5873e59641e5.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "23": {
+    "inputs": {
+      "text": [
+        "251",
+        0
+      ],
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "26": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "23",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Flux引导"
+    }
+  },
+  "31": {
+    "inputs": {
+      "unet_name": "flux1-dev-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "32": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "109": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "K采样器选择"
+    }
+  },
+  "111": {
+    "inputs": {
+      "noise_seed": [
+        "228",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "随机噪波"
+    }
+  },
+  "123": {
+    "inputs": {
+      "clip_name1": "t5xxl_fp8_e4m3fn.safetensors",
+      "clip_name2": "clip_l.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "双CLIP加载器"
+    }
+  },
+  "169": {
+    "inputs": {
+      "model": [
+        "244",
+        0
+      ]
+    },
+    "class_type": "FluxForwardOverrider",
+    "_meta": {
+      "title": "FluxForwardOverrider"
+    }
+  },
+  "188": {
+    "inputs": {
+      "noise": [
+        "111",
+        0
+      ],
+      "guider": [
+        "192",
+        0
+      ],
+      "sampler": [
+        "109",
+        0
+      ],
+      "sigmas": [
+        "191",
+        0
+      ],
+      "latent_image": [
+        "254",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "first block cache"
+    }
+  },
+  "191": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1,
+      "model": [
+        "195",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "基本调度器"
+    }
+  },
+  "192": {
+    "inputs": {
+      "model": [
+        "195",
+        0
+      ],
+      "conditioning": [
+        "201",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "基本引导器"
+    }
+  },
+  "195": {
+    "inputs": {
+      "residual_diff_threshold": 0,
+      "start_at": 0,
+      "end_at": 1,
+      "model": [
+        "169",
+        0
+      ]
+    },
+    "class_type": "ApplyFirstBlockCachePatchAdvanced",
+    "_meta": {
+      "title": "ApplyFirstBlockCachePatchAdvanced"
+    }
+  },
+  "197": {
+    "inputs": {
+      "clip_name": "sigclip_vision_patch14_384.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "加载CLIP视觉"
+    }
+  },
+  "198": {
+    "inputs": {
+      "style_model_name": "flux1-redux-dev.safetensors"
+    },
+    "class_type": "StyleModelLoader",
+    "_meta": {
+      "title": "加载风格模型"
+    }
+  },
+  "199": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "197",
+        0
+      ],
+      "image": [
+        "211",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP视觉编码"
+    }
+  },
+  "201": {
+    "inputs": {
+      "image_strength": "medium",
+      "conditioning": [
+        "238",
+        0
+      ],
+      "style_model": [
+        "198",
+        0
+      ],
+      "clip_vision_output": [
+        "199",
+        0
+      ]
+    },
+    "class_type": "StyleModelApplySimple",
+    "_meta": {
+      "title": "StyleModelApplySimple"
+    }
+  },
+  "211": {
+    "inputs": {
+      "size": 1024,
+      "interpolation_mode": "bicubic",
+      "image": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "JWImageResizeByLongerSide",
+    "_meta": {
+      "title": "Image Resize by Longer Side"
+    }
+  },
+  "213": {
+    "inputs": {
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "188",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE解码（分块）"
+    }
+  },
+  "216": {
+    "inputs": {
+      "width": [
+        "217",
+        0
+      ],
+      "height": [
+        "217",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "217": {
+    "inputs": {
+      "image": [
+        "211",
+        0
+      ]
+    },
+    "class_type": "easy imageSize",
+    "_meta": {
+      "title": "图像尺寸"
+    }
+  },
+  "228": {
+    "inputs": {
+      "seed": 659949220261089
+    },
+    "class_type": "easy seed",
+    "_meta": {
+      "title": "随机种"
+    }
+  },
+  "235": {
+    "inputs": {
+      "preprocessor": "DepthAnythingPreprocessor",
+      "resolution": 1024,
+      "image": [
+        "211",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "236": {
+    "inputs": {
+      "images": [
+        "235",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "238": {
+    "inputs": {
+      "positive": [
+        "26",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ],
+      "pixels": [
+        "235",
+        0
+      ]
+    },
+    "class_type": "InstructPixToPixConditioning",
+    "_meta": {
+      "title": "InstructPixToPix条件"
+    }
+  },
+  "244": {
+    "inputs": {
+      "lora_01": "flux1-depth-dev-lora.safetensors",
+      "strength_01": 0.7000000000000002,
+      "lora_02": "Beauty_Enahancer__Realistic_eyes_Flux.safetensors",
+      "strength_02": 0.3,
+      "lora_03": "None",
+      "strength_03": 0,
+      "lora_04": "None",
+      "strength_04": 0,
+      "model": [
+        "31",
+        0
+      ],
+      "clip": [
+        "123",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "Lora Loader Stack (rgthree)"
+    }
+  },
+  "245": {
+    "inputs": {
+      "text_input": "",
+      "task": "detailed_caption",
+      "fill_mask": false,
+      "keep_model_loaded": false,
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": [
+        "228",
+        0
+      ],
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "image": [
+        "17",
+        0
+      ],
+      "florence2_model": [
+        "246",
+        0
+      ]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2Run"
+    }
+  },
+  "246": {
+    "inputs": {
+      "model": "Florence-2-base",
+      "precision": "fp16",
+      "attention": "sdpa",
+      "convert_to_safetensors": false
+    },
+    "class_type": "Florence2ModelLoader",
+    "_meta": {
+      "title": "Florence2ModelLoader"
+    }
+  },
+  "247": {
+    "inputs": {
+      "text": [
+        "245",
+        2
+      ],
+      "text2": "The image shows a young man sitting on the floor next to a washing machine, with a wall in the background."
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "251": {
+    "inputs": {
+      "text1": [
+        "245",
+        2
+      ],
+      "text2": [
+        "257",
+        0
+      ],
+      "separator": ""
+    },
+    "class_type": "CR Text Concatenate",
+    "_meta": {
+      "title": "🔤 CR Text Concatenate"
+    }
+  },
+  "254": {
+    "inputs": {
+      "pixels": [
+        "211",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE编码"
+    }
+  },
+  "255": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "213",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "256": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "257": {
+    "inputs": {
+      "from_translate": "chinese simplified",
+      "to_translate": "english",
+      "add_proxies": false,
+      "proxies": "",
+      "auth_data": "",
+      "service": "MyMemoryTranslator [free]",
+      "text": [
+        "256",
+        0
+      ],
+      "Show proxy": "proxy_hide",
+      "Show authorization": "authorization_hide",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "DeepTranslatorTextNode",
+    "_meta": {
+      "title": "Deep Translator Text Node"
+    }
+  },
+  "258": {
+    "inputs": {
+      "text": [
+        "257",
+        0
+      ],
+      "text2": "A mature European-American blue-eyed girl working out in her bedroom with her hands raised on a dumbbell showing her biceps"
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  }
+}

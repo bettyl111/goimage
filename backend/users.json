@@ -1,0 +1,58 @@
+{
+    "users": [
+        {
+            "email": "admin@example.com",
+            "password": "admin123",
+            "hashed_password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+            "role": "admin"
+        },
+        {
+            "email": "huangjunjie@gomo.com",
+            "hashed_password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+            "password": "123456",
+            "role": "user"
+        },
+        {
+            "email": "user@example.com",
+            "hashed_password": "e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446",
+            "password": "user123",
+            "role": "user"
+        },
+        {
+            "email": "583973574@qq.com",
+            "hashed_password": "f0b29a87d5c25a00fa3ce8b4be75a018e7c5b7ad487c4ee0729921a9a16f8c81",
+            "password": "chenrongjie",
+            "role": "user"
+        },
+        {
+            "email": "linjingshan@gomo.com",
+            "hashed_password": "c2ad92f262323a28e84b7408fd6f8a21fd0e3ae663017d1ee2f5c4769df20c4e",
+            "password": "Ljs2505",
+            "role": "user"
+        },
+        {
+            "email": "m13143713245@163.com",
+            "hashed_password": "00214a5a73c857f30754b99cb5dc9f02a59c0e51c3f77df05b3cee444989b092",
+            "password": "christy520",
+            "role": "user"
+        },
+        {
+            "email": "zhangyongshi@gomo.com",
+            "hashed_password": "da33c27ee7b01b4f47cac088bdb0ae6fa6777dd4d7e2e41a7815f5c879c7366f",
+            "password": "Zys2502",
+            "role": "user"
+        },
+        {
+            "email": "lixiangmiao@gomo.com",
+            "hashed_password": "83e3ae4fd165912dfc1460d1cdb39ee2ef45fb0ad146a087c5b9891f3bb628d0",
+            "password": "Gomo2015",
+            "role": "user"
+        },
+        {
+            "email": "guosiyun@gomo.com",
+            "hashed_password": "5ec0a5f683c3190350f052d663915feb52d9e8d40c591d034d1bca4a0e13d901",
+            "password": "Yh2506",
+            "role": "user"
+        }
+    ]
+}
