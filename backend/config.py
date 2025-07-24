@@ -26,11 +26,8 @@ COMFYUI_PATH = os.getenv("COMFYUI_PATH", "")
 # 如果环境变量未设置，尝试常见的安装路径
 if not COMFYUI_PATH:
     common_paths = [
-        str(BASE_DIR.parent / "ComfyUI"),  # 相对于backend目录的上级目录
-        str(BASE_DIR / "ComfyUI"),  # 相对于backend目录
-        "C:\\ComfyUI",  # Windows常见路径
-        "/home/user/ComfyUI",  # Linux常见路径
-        os.path.expanduser("~/ComfyUI"),  # 用户主目录
+        # "/home/user/ComfyUI",  # Linux常见路径
+        os.path.expanduser("~/comfy/ComfyUI"),  # 用户主目录
     ]
     
     for path in common_paths:

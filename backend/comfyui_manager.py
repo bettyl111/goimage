@@ -50,10 +50,10 @@ class ComfyUIManager:
         # 如果路径为空，尝试常见的安装路径
         if not self.comfyui_path or not os.path.exists(self.comfyui_path):
             common_paths = [
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ComfyUI"),  # 相对于当前文件的上级目录
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "ComfyUI"),  # 相对于当前文件的同级目录
+                # os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ComfyUI"),  # 相对于当前文件的上级目录
+                # os.path.join(os.path.dirname(os.path.abspath(__file__)), "ComfyUI"),  # 相对于当前文件的同级目录
                 "C:\\ComfyUI",  # Windows常见路径
-                "/home/user/ComfyUI",  # Linux常见路径
+                "/home/huangjunjie/comfy/ComfyUI",  # Linux常见路径
                 os.path.expanduser("~/ComfyUI"),  # 用户主目录
             ]
             
