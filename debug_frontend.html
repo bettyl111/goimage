@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Text-to-Image Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .panel {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d1fae5; color: #065f46; }
+        .error { background-color: #fee2e2; color: #991b1b; }
+        .info { background-color: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文生图界面调试</h1>
+        
+        <div class="panel">
+            <h2>模式选择</h2>
+            <button onclick="switchMode('image-to-image')">图生图模式</button>
+            <button onclick="switchMode('text-to-image')">文生图模式</button>
+            <div id="current-mode" class="status info">当前模式: 图生图</div>
+        </div>
+        
+        <div class="panel" id="image-to-image-panel">
+            <h2>图生图面板</h2>
+            <p>这是图生图模式界面</p>
+            <textarea placeholder="请输入提示词..."></textarea>
+            <button>生成图像</button>
+        </div>
+        
+        <div class="panel hidden" id="text-to-image-panel">
+            <h2>文生图面板</h2>
+            <p>这是文生图模式界面</p>
+            <textarea placeholder="请输入提示词..."></textarea>
+            <div>
+                <label>生成数量:</label>
+                <input type="number" value="1" min="1" max="16">
+            </div>
+            <div>
+                <label>图片尺寸:</label>
+                <select>
+                    <option value="1:1">1:1</option>
+                    <option value="3:2">3:2</option>
+                    <option value="2:3">2:3</option>
+                </select>
+            </div>
+            <button>生成图像</button>
+        </div>
+        
+        <div class="panel">
+            <h2>状态信息</h2>
+            <div id="status-info" class="status info">准备就绪</div>
+        </div>
+        
+        <div class="panel">
+            <h2>API测试</h2>
+            <button onclick="testQueueStatus()">测试队列状态API</button>
+            <button onclick="testAuth()">测试身份验证</button>
+            <div id="api-response" class="status info">点击按钮测试API</div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'image-to-image';
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('current-mode').textContent = `当前模式: ${mode === 'image-to-image' ? '图生图' : '文生图'}`;
+            
+            // 隐藏所有面板
+            document.getElementById('image-to-image-panel').classList.add('hidden');
+            document.getElementById('text-to-image-panel').classList.add('hidden');
+            
+            // 显示当前模式的面板
+            document.getElementById(mode + '-panel').classList.remove('hidden');
+            
+            updateStatus(`切换到${mode === 'image-to-image' ? '图生图' : '文生图'}模式`);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status-info');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        async function testQueueStatus() {
+            try {
+                updateStatus('正在测试队列状态API...', 'info');
+                
+                const response = await fetch('/api/queue-status', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 这里应该包含真实的认证token
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('api-response').textContent = `队列状态: ${JSON.stringify(data, null, 2)}`;
+                    updateStatus('队列状态API测试成功', 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                document.getElementById('api-response').textContent = `错误: ${error.message}`;
+                updateStatus('队列状态API测试失败', 'error');
+            }
+        }
+        
+        async function testAuth() {
+            try {
+                updateStatus('正在测试身份验证...', 'info');
+                
+                // 这里可以添加实际的身份验证测试
+                updateStatus('请检查浏览器开发者工具的控制台', 'info');
+                
+                console.log('当前页面URL:', window.location.href);
+                console.log('当前用户代理:', navigator.userAgent);
+                console.log('文档就绪状态:', document.readyState);
+                
+                // 检查localStorage中的认证信息
+                console.log('LocalStorage内容:', Object.keys(localStorage));
+                
+            } catch (error) {
+                updateStatus('身份验证测试失败', 'error');
+                console.error('Auth test error:', error);
+            }
+        }
+        
+        // 页面加载时的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('页面加载完成，调试工具准备就绪', 'success');
+            console.log('Debug page loaded successfully');
+            
+            // 检查是否有React相关的错误
+            window.addEventListener('error', function(e) {
+                console.error('JavaScript Error:', e.error);
+                updateStatus(`JavaScript错误: ${e.error.message}`, 'error');
+            });
+            
+            // 检查未处理的Promise拒绝
+            window.addEventListener('unhandledrejection', function(e) {
+                console.error('Unhandled Promise Rejection:', e.reason);
+                updateStatus(`Promise错误: ${e.reason}`, 'error');
+            });
+        });
+    </script>
+</body>
+</html> 

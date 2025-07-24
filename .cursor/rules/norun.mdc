@@ -1,0 +1,5 @@
+---
+description:请尽量不要在本机上直接运行，我是在linux服务器上运行
+globs:
+alwaysApply: false
+---

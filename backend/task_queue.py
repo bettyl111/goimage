@@ -627,7 +627,7 @@ class SimpleTaskQueue:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            if task.task_type == 'text2image':
+            if task.task_type == 'text-to-image':
                 try:
                     # 修改工作流
                     workflow = modify_text_to_image_workflow(task.params)
@@ -723,10 +723,61 @@ class SimpleTaskQueue:
                     self.update_task_status(task.id, 'failed', error=str(e))
                     return
                 
-            elif task.task_type == 'image2image':
-                # image2image的处理逻辑类似，也需要添加in_comfyui标记
-                # ... 其他代码保持不变 ...
-                pass
+            elif task.task_type == 'image-to-image':
+                try:
+                    # 导入图像处理相关函数
+                    from app import modify_comfyui_workflow
+                    
+                    # 准备工作流参数
+                    uploaded_image_path = task.params.get("uploaded_image_path")
+                    prompt = task.params.get("prompt", "")
+                    image_strength = task.params.get("image_strength", "0.8")
+                    face_file_paths = task.params.get("face_file_paths", [])
+                    
+                    # 修改工作流
+                    workflow = modify_comfyui_workflow(
+                        workflow_json_path=config.IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH,
+                        input_image_path=uploaded_image_path,
+                        prompt=prompt,
+                        image_strength=image_strength,
+                        face_files=face_file_paths
+                    )
+                    
+                    # 提交到ComfyUI
+                    prompt_id = loop.run_until_complete(queue_prompt(workflow))
+                    if not prompt_id:
+                        raise Exception("提交到ComfyUI失败")
+                    
+                    # 标记任务已进入ComfyUI处理
+                    task.in_comfyui = True
+                    self.update_task_status(task.id, 'processing', error=None)
+                    
+                    # 轮询结果（简化处理）
+                    start_time = time.time()
+                    result = None
+                    while time.time() - start_time < 300:  # 5分钟超时
+                        try:
+                            result = loop.run_until_complete(get_comfyui_history(prompt_id))
+                            if result and "outputs" in result:
+                                break
+                        except Exception as e:
+                            logger.error(f"获取ComfyUI历史记录失败: {str(e)}")
+                            time.sleep(5)
+                            continue
+                            
+                        self.update_task_progress(task.id, 50)
+                        time.sleep(5)
+                        
+                    if not result or "outputs" not in result:
+                        raise Exception("生成超时或失败")
+                        
+                    # 完成任务（简化结果处理）
+                    self.complete_task(task.id, 'completed', {"images": []})
+                    
+                except Exception as e:
+                    logger.error(f"处理图像到图像任务 {task.id} 失败: {str(e)}")
+                    self.update_task_status(task.id, 'failed', error=str(e))
+                    return
                 
         except Exception as e:
             logger.error(f"处理任务 {task.id} 失败: {str(e)}")
@@ -763,11 +814,26 @@ class SimpleTaskQueue:
             logger.error(f"清理任务状态失败: {str(e)}")
             return False, f"清理任务状态失败: {str(e)}"
 
-    def get_queue_status(self) -> Dict[str, Any]:
+    def get_queue_status(self, user_id: str = None) -> Dict[str, Any]:
         """获取队列状态 2023.07.03 11"""
         try:
             # 计算活跃任务数（队列中 + 处理中）
             total_active = len(self.queue) + len(self.processing)
+            
+            # 如果提供了用户ID，计算用户专属的任务数
+            user_tasks_in_queue = 0
+            user_tasks_processing = 0
+            
+            if user_id:
+                # 计算用户队列中的任务数
+                for task in self.queue:
+                    if task.user_id == user_id:
+                        user_tasks_in_queue += 1
+                
+                # 计算用户处理中的任务数
+                for task_info in self.processing.values():
+                    if task_info['task'].user_id == user_id:
+                        user_tasks_processing += 1
             
             # 获取当前正在处理的任务信息
             processing_tasks = []
@@ -792,12 +858,19 @@ class SimpleTaskQueue:
                 })
             
             return {
+                # 保持向后兼容的字段名
                 'total_active': total_active,
                 'processing_count': len(self.processing),
                 'queue_count': len(self.queue),
                 'max_concurrent': self.max_concurrent,
                 'processing_tasks': processing_tasks,
-                'queued_tasks': queued_tasks
+                'queued_tasks': queued_tasks,
+                
+                # 添加前端QueueStatusPanel期望的字段名
+                'queue_length': len(self.queue),
+                'user_tasks_in_queue': user_tasks_in_queue,
+                'user_tasks_processing': user_tasks_processing,
+                'concurrent_tasks': len(self.processing)
             }
         except Exception as e:
             logger.error(f"获取队列状态失败: {str(e)}")
@@ -807,7 +880,11 @@ class SimpleTaskQueue:
                 'queue_count': 0,
                 'max_concurrent': self.max_concurrent,
                 'processing_tasks': [],
-                'queued_tasks': []
+                'queued_tasks': [],
+                'queue_length': 0,
+                'user_tasks_in_queue': 0,
+                'user_tasks_processing': 0,
+                'concurrent_tasks': 0
             }
 
     def _process_comfyui_output(self, task: Task, output_data: Dict):
