@@ -1,0 +1,7 @@
+2025-07-23 16:49:14,875 - TaskQueue - INFO - 数据库初始化完成
+2025-07-23 16:49:14,877 - TaskQueue - INFO - 从数据库恢复了 0 个任务
+2025-07-23 16:49:14,888 - TaskQueue - INFO - 任务队列初始化完成
+2025-07-23 16:49:14,894 - TaskQueue - INFO - 任务状态已清理
+2025-07-23 16:49:14,958 - TaskQueue - INFO - 添加任务: 20dfc6bd-e30f-4991-b543-78020c85bcdf, 用户: test@example.com, 类型: text-to-image
+2025-07-23 16:49:14,987 - TaskQueue - INFO - 从队列中移除任务: 20dfc6bd-e30f-4991-b543-78020c85bcdf
+2025-07-23 16:49:15,009 - TaskQueue - INFO - 更新任务状态: 20dfc6bd-e30f-4991-b543-78020c85bcdf -> cancelled

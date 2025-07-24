@@ -6,7 +6,20 @@ import os
 import sqlite3
 from typing import Dict, List, Any, Optional, Tuple
 import subprocess
-from config import TASK_QUEUE_CONFIG
+try:
+    from config import TASK_QUEUE_CONFIG
+except ImportError:
+    # 如果无法导入config，使用默认配置
+    TASK_QUEUE_CONFIG = {
+        'max_concurrent_tasks': 2,
+        'task_timeout': 600,
+        'queue_check_interval': 5,
+        'max_tasks_per_user': 3,
+        'gpu_usage_high_threshold': 90,
+        'gpu_memory_high_threshold': 85,
+        'gpu_usage_normal_threshold': 50,
+        'gpu_memory_normal_threshold': 60,
+    }
 
 # 配置日志
 logging.basicConfig(
@@ -491,14 +504,38 @@ class SimpleTaskQueue:
     def _monitor_gpu_resources(self) -> Dict[str, Any]:
         """监控GPU资源 2023.07.01 10"""
         try:
+            # 检查nvidia-smi是否可用
+            nvidia_smi_available = subprocess.run(
+                ['which', 'nvidia-smi'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            ).returncode == 0
+            
+            if not nvidia_smi_available:
+                logger.debug("nvidia-smi不可用，使用默认GPU状态")
+                return {
+                    'gpu_usage': 0,
+                    'memory_usage': 0,
+                    'available': True
+                }
+            
             # 使用nvidia-smi获取GPU使用情况
             result = subprocess.run(
                 ['nvidia-smi', '--query-gpu=utilization.gpu,memory.used,memory.total', '--format=csv,noheader,nounits'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=True
+                timeout=10
             )
+            
+            if result.returncode != 0:
+                logger.debug(f"nvidia-smi返回错误代码: {result.returncode}")
+                return {
+                    'gpu_usage': 0,
+                    'memory_usage': 0,
+                    'available': True
+                }
             
             # 解析输出
             output = result.stdout.strip()
@@ -522,10 +559,14 @@ class SimpleTaskQueue:
                     'memory_usage': memory_usage,
                     'available': gpu_usage < 95 and memory_usage < 90
                 }
+        except subprocess.TimeoutExpired:
+            logger.warning("nvidia-smi命令超时")
+        except FileNotFoundError:
+            logger.debug("nvidia-smi命令未找到")
         except Exception as e:
-            logger.error(f"监控GPU资源失败: {str(e)}")
+            logger.debug(f"监控GPU资源失败: {str(e)}")
         
-        # 默认返回可用
+        # 默认返回可用（适用于没有GPU或GPU监控不可用的情况）
         return {
             'gpu_usage': 0,
             'memory_usage': 0,
