@@ -63,8 +63,13 @@ class ComfyUIManager:
                     logger.info(f"找到ComfyUI安装路径: {self.comfyui_path}")
                     break
         
+        # 检测conda环境
+        self.conda_path, self.conda_env_path = self._detect_conda_env()
+        
         # 记录最终使用的路径
         logger.info(f"使用ComfyUI路径: {self.comfyui_path}")
+        logger.info(f"检测到conda路径: {self.conda_path}")
+        logger.info(f"检测到conda环境路径: {self.conda_env_path}")
             
         self.comfyui_url = "http://127.0.0.1:8188"
         self.comfyui_process = None
@@ -79,6 +84,48 @@ class ComfyUIManager:
         self.monitoring_thread.start()
         
         logger.info("ComfyUI管理器初始化完成")
+    
+    def _detect_conda_env(self) -> Tuple[Optional[str], Optional[str]]:
+        """检测conda环境路径"""
+        try:
+            # 常见的conda安装路径
+            conda_paths = [
+                "/home/huangjunjie/miniconda3/bin/conda",
+                "/home/huangjunjie/anaconda3/bin/conda",
+                "/opt/conda/bin/conda",
+                "/usr/local/bin/conda",
+                os.path.expanduser("~/miniconda3/bin/conda"),
+                os.path.expanduser("~/anaconda3/bin/conda"),
+            ]
+            
+            conda_path = None
+            for path in conda_paths:
+                if os.path.exists(path):
+                    conda_path = path
+                    logger.info(f"找到conda路径: {conda_path}")
+                    break
+            
+            # 检测comfyui环境路径
+            conda_env_path = None
+            if conda_path:
+                env_paths = [
+                    "/home/huangjunjie/miniconda3/envs/comfyui/bin/python",
+                    "/home/huangjunjie/anaconda3/envs/comfyui/bin/python",
+                    os.path.expanduser("~/miniconda3/envs/comfyui/bin/python"),
+                    os.path.expanduser("~/anaconda3/envs/comfyui/bin/python"),
+                ]
+                
+                for path in env_paths:
+                    if os.path.exists(path):
+                        conda_env_path = path
+                        logger.info(f"找到comfyui环境Python路径: {conda_env_path}")
+                        break
+            
+            return conda_path, conda_env_path
+            
+        except Exception as e:
+            logger.warning(f"检测conda环境失败: {str(e)}")
+            return None, None
     
     def _monitoring_loop(self):
         """监控循环 2023.07.04 15"""
@@ -183,19 +230,27 @@ class ComfyUIManager:
             python_path = sys.executable
             logger.info(f"使用Python解释器: {python_path}")
             
-            # 尝试不同的启动命令
-            start_commands = [
-                # 直接使用系统Python
-                # f"cd {self.comfyui_path} && {python_path} main.py",
-                # 使用conda环境
-                f"cd {self.comfyui_path} && conda activate comfyui && python main.py",
-                # 使用venv环境
-                # f"cd {self.comfyui_path} && source venv/bin/activate && python main.py",
-                # Windows环境下使用venv
-                # f"cd {self.comfyui_path} && venv\\Scripts\\activate && python main.py",
-                # 直接运行Python脚本
-                # f"cd {self.comfyui_path} && python main.py"
-            ]
+            # 构建启动命令列表
+            start_commands = []
+            
+            # 优先使用检测到的conda环境Python路径
+            if self.conda_env_path:
+                start_commands.append(f"cd {self.comfyui_path} && {self.conda_env_path} main.py")
+            
+            # 使用conda run命令
+            if self.conda_path:
+                start_commands.append(f"cd {self.comfyui_path} && {self.conda_path} run -n comfyui python main.py")
+            
+            # 尝试bash初始化的方式
+            start_commands.extend([
+                f"bash -c 'source ~/.bashrc && cd {self.comfyui_path} && conda activate comfyui && python main.py'",
+                f"bash -l -c 'cd {self.comfyui_path} && conda activate comfyui && python main.py'",
+                f"cd {self.comfyui_path} && source ~/.bashrc && conda activate comfyui && python main.py",
+                f"cd {self.comfyui_path} && source /etc/profile && conda activate comfyui && python main.py",
+            ])
+            
+            # 备用方案：直接使用系统Python
+            start_commands.append(f"cd {self.comfyui_path} && python main.py")
             
             # 尝试每个启动命令
             for i, cmd in enumerate(start_commands):
@@ -213,7 +268,16 @@ class ComfyUIManager:
                     
                     # 等待ComfyUI启动
                     start_time = time.time()
-                    while time.time() - start_time < 45:  # 每个命令最多等待30秒
+                    while time.time() - start_time < 45:  # 每个命令最多等待45秒
+                        # 检查进程是否还在运行
+                        if self.comfyui_process.poll() is not None:
+                            # 进程已终止，获取输出信息
+                            stdout, stderr = self.comfyui_process.communicate()
+                            logger.error(f"ComfyUI进程已终止，命令 {i+1} 失败")
+                            logger.error(f"标准输出: {stdout}")
+                            logger.error(f"错误输出: {stderr}")
+                            break
+                        
                         if self.is_comfyui_running():
                             logger.info(f"ComfyUI已成功启动 (使用命令 {i+1})")
                             return True, f"ComfyUI已成功启动 (使用命令 {i+1})"

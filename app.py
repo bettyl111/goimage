@@ -752,18 +752,18 @@ async def get_user_tasks_api(current_user: Dict = Depends(get_current_user)):
     
     # 4. 向后兼容：从旧的任务系统获取任务（如果有）
     if user_email in user_tasks:
-        for task in user_tasks[user_email]:
+    for task in user_tasks[user_email]:
             # 检查是否已经从任务队列获取到了这个任务
             if not any(t["task_id"] == task["task_id"] for t in result_tasks):
                 # 更新任务状态
-                task_id = task["task_id"]
-                if task_id in task_status:
-                    current_status = task_status[task_id]
-                    if current_status != task["status"]:
-                        task["status"] = current_status
-                        if current_status == "completed" and task_id in task_results:
-                            task["completion_time"] = time.time()
-                            task["image_url"] = task_results[task_id].get("image_url")
+        task_id = task["task_id"]
+        if task_id in task_status:
+            current_status = task_status[task_id]
+            if current_status != task["status"]:
+                task["status"] = current_status
+                if current_status == "completed" and task_id in task_results:
+                    task["completion_time"] = time.time()
+                    task["image_url"] = task_results[task_id].get("image_url")
                 
                 result_tasks.append({
                     "task_id": task["task_id"],
