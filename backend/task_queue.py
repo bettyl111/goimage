@@ -628,40 +628,97 @@ class SimpleTaskQueue:
             asyncio.set_event_loop(loop)
             
             if task.task_type == 'text-to-image':
+                logger.info(f"开始处理文生图任务: {task.id}")
+                logger.info(f"任务参数: {task.params}")
+                
                 try:
+                    # 检查配置文件
+                    logger.info("检查配置文件中的文生图工作流路径...")
+                    if not hasattr(config, 'TEXT_TO_IMAGE_WORKFLOW_FILE_PATH'):
+                        raise Exception("配置文件中缺少 TEXT_TO_IMAGE_WORKFLOW_FILE_PATH 配置项")
+                    
+                    workflow_path = config.TEXT_TO_IMAGE_WORKFLOW_FILE_PATH
+                    logger.info(f"文生图工作流文件路径: {workflow_path}")
+                    
+                    if not os.path.exists(workflow_path):
+                        raise Exception(f"文生图工作流文件不存在: {workflow_path}")
+                    
+                    logger.info("开始修改文生图工作流...")
                     # 修改工作流
-                    workflow = modify_text_to_image_workflow(task.params)
+                    try:
+                        workflow = modify_text_to_image_workflow(task.params)
+                        logger.info("文生图工作流修改成功")
+                        logger.debug(f"修改后的工作流: {json.dumps(workflow, indent=2)}")
+                    except Exception as e:
+                        logger.error(f"修改文生图工作流失败: {str(e)}")
+                        raise Exception(f"工作流修改失败: {str(e)}")
                     
                     # 提交到ComfyUI
-                    prompt_id = loop.run_until_complete(queue_prompt(workflow))
-                    if not prompt_id:
-                        raise Exception("提交到ComfyUI失败")
+                    logger.info("提交文生图工作流到ComfyUI...")
+                    try:
+                        prompt_result = loop.run_until_complete(queue_prompt(workflow))
+                        logger.info(f"ComfyUI响应: {prompt_result}")
+                        
+                        if not prompt_result:
+                            raise Exception("ComfyUI返回空响应")
+                        
+                        # 检查返回格式
+                        if isinstance(prompt_result, dict) and 'prompt_id' in prompt_result:
+                            prompt_id = prompt_result['prompt_id']
+                        elif isinstance(prompt_result, str):
+                            prompt_id = prompt_result
+                        else:
+                            raise Exception(f"ComfyUI返回的响应格式不正确: {type(prompt_result)} - {prompt_result}")
+                        
+                        if not prompt_id:
+                            raise Exception("ComfyUI返回的prompt_id为空")
+                            
+                        logger.info(f"成功提交到ComfyUI，prompt_id: {prompt_id}")
+                        
+                    except Exception as e:
+                        logger.error(f"提交到ComfyUI失败: {str(e)}")
+                        raise Exception(f"提交到ComfyUI失败: {str(e)}")
                     
                     # 标记任务已进入ComfyUI处理
                     task.in_comfyui = True
                     self.update_task_status(task.id, 'processing', error=None)
+                    logger.info(f"任务 {task.id} 已标记为进入ComfyUI处理阶段")
                     
                     # 轮询结果
+                    logger.info("开始轮询ComfyUI处理结果...")
                     start_time = time.time()
                     result = None
+                    poll_count = 0
+                    
                     while time.time() - start_time < config.COMFYUI_POLLING_TIMEOUT_SECONDS:
+                        poll_count += 1
+                        logger.info(f"第 {poll_count} 次轮询ComfyUI历史记录...")
+                        
                         try:
                             result = loop.run_until_complete(get_comfyui_history(prompt_id))
+                            logger.debug(f"ComfyUI历史记录响应: {result}")
+                            
                             if result is None:
+                                logger.info("ComfyUI返回空结果，继续等待...")
                                 time.sleep(5)  # 等待5秒后重试
                                 continue
                             if "outputs" in result:
+                                logger.info("检测到ComfyUI输出结果，处理完成")
                                 break
                         except Exception as e:
-                            logger.error(f"获取ComfyUI历史记录失败: {str(e)}")
+                            logger.error(f"第 {poll_count} 次获取ComfyUI历史记录失败: {str(e)}")
                             time.sleep(5)
                             continue
                             
                         # 更新任务进度
-                        self.update_task_progress(task.id, 50)
+                        progress = min(90, 20 + (poll_count * 3))  # 从20%开始，每次增加3%，最大90%
+                        self.update_task_progress(task.id, progress)
+                        logger.info(f"更新任务进度: {progress}%")
                         
                     if not result or "outputs" not in result:
-                        raise Exception("生成超时或失败")
+                        logger.error("ComfyUI处理超时或失败")
+                        logger.error(f"最终结果: {result}")
+                        raise Exception("ComfyUI处理超时或失败")
                         
                     # 处理结果
                     output_images = []
@@ -716,66 +773,243 @@ class SimpleTaskQueue:
                             conn.close()
                     
                     # 完成任务
+                    logger.info(f"文生图任务 {task.id} 处理完成，生成了 {len(output_images)} 张图像")
                     self.complete_task(task.id, 'completed', {"images": output_images})
                     
                 except Exception as e:
-                    logger.error(f"处理任务 {task.id} 失败: {str(e)}")
+                    error_msg = f"处理文生图任务 {task.id} 失败: {str(e)}"
+                    logger.error(error_msg)
+                    logger.error(f"错误堆栈: ", exc_info=True)
                     self.update_task_status(task.id, 'failed', error=str(e))
                     return
                 
             elif task.task_type == 'image-to-image':
+                logger.info(f"开始处理图生图任务: {task.id}")
+                logger.info(f"任务参数: {task.params}")
+                
                 try:
-                    # 导入图像处理相关函数
-                    from app import modify_comfyui_workflow
+                    # 检查配置文件
+                    logger.info("检查配置文件中的图生图工作流路径...")
+                    if not hasattr(config, 'IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH'):
+                        raise Exception("配置文件中缺少 IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH 配置项")
                     
-                    # 准备工作流参数
+                    workflow_path = config.IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH
+                    logger.info(f"工作流文件路径: {workflow_path}")
+                    
+                    if not os.path.exists(workflow_path):
+                        raise Exception(f"工作流文件不存在: {workflow_path}")
+                    
+                    # 导入图像处理相关函数
+                    logger.info("导入图像处理相关函数...")
+                    try:
+                        from app import modify_comfyui_workflow
+                        logger.info("成功导入 modify_comfyui_workflow 函数")
+                    except ImportError as e:
+                        logger.error(f"导入 modify_comfyui_workflow 函数失败: {str(e)}")
+                        raise Exception(f"无法导入图像处理函数: {str(e)}")
+                    
+                    # 获取和验证任务参数
+                    logger.info("解析任务参数...")
                     uploaded_image_path = task.params.get("uploaded_image_path")
                     prompt = task.params.get("prompt", "")
                     image_strength = task.params.get("image_strength", "0.8")
                     face_file_paths = task.params.get("face_file_paths", [])
                     
+                    logger.info(f"输入图像路径: {uploaded_image_path}")
+                    logger.info(f"提示词: {prompt}")
+                    logger.info(f"图像强度: {image_strength}")
+                    logger.info(f"人脸文件: {face_file_paths}")
+                    
+                    # 验证输入图像文件是否存在
+                    if not uploaded_image_path:
+                        raise Exception("缺少输入图像路径")
+                    
+                    if not os.path.exists(uploaded_image_path):
+                        raise Exception(f"输入图像文件不存在: {uploaded_image_path}")
+                    
+                    logger.info(f"输入图像文件验证通过: {uploaded_image_path}")
+                    
                     # 修改工作流
-                    workflow = modify_comfyui_workflow(
-                        workflow_json_path=config.IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH,
-                        input_image_path=uploaded_image_path,
-                        prompt=prompt,
-                        image_strength=image_strength,
-                        face_files=face_file_paths
-                    )
+                    logger.info("开始修改ComfyUI工作流...")
+                    try:
+                        workflow = modify_comfyui_workflow(
+                            workflow_json_path=workflow_path,
+                            input_image_path=uploaded_image_path,
+                            prompt=prompt,
+                            image_strength=image_strength,
+                            face_files=face_file_paths
+                        )
+                        logger.info("工作流修改成功")
+                        logger.debug(f"修改后的工作流: {json.dumps(workflow, indent=2)}")
+                    except Exception as e:
+                        logger.error(f"修改工作流失败: {str(e)}")
+                        raise Exception(f"工作流修改失败: {str(e)}")
                     
                     # 提交到ComfyUI
-                    prompt_id = loop.run_until_complete(queue_prompt(workflow))
-                    if not prompt_id:
-                        raise Exception("提交到ComfyUI失败")
+                    logger.info("提交工作流到ComfyUI...")
+                    try:
+                        prompt_result = loop.run_until_complete(queue_prompt(workflow))
+                        logger.info(f"ComfyUI响应: {prompt_result}")
+                        
+                        if not prompt_result:
+                            raise Exception("ComfyUI返回空响应")
+                        
+                        # 检查返回格式
+                        if isinstance(prompt_result, dict) and 'prompt_id' in prompt_result:
+                            prompt_id = prompt_result['prompt_id']
+                        elif isinstance(prompt_result, str):
+                            prompt_id = prompt_result
+                        else:
+                            raise Exception(f"ComfyUI返回的响应格式不正确: {type(prompt_result)} - {prompt_result}")
+                        
+                        if not prompt_id:
+                            raise Exception("ComfyUI返回的prompt_id为空")
+                            
+                        logger.info(f"成功提交到ComfyUI，prompt_id: {prompt_id}")
+                        
+                    except Exception as e:
+                        logger.error(f"提交到ComfyUI失败: {str(e)}")
+                        raise Exception(f"提交到ComfyUI失败: {str(e)}")
                     
                     # 标记任务已进入ComfyUI处理
                     task.in_comfyui = True
                     self.update_task_status(task.id, 'processing', error=None)
+                    logger.info(f"任务 {task.id} 已标记为进入ComfyUI处理阶段")
                     
-                    # 轮询结果（简化处理）
+                    # 轮询结果
+                    logger.info("开始轮询ComfyUI处理结果...")
                     start_time = time.time()
                     result = None
+                    poll_count = 0
+                    
                     while time.time() - start_time < 300:  # 5分钟超时
+                        poll_count += 1
+                        logger.info(f"第 {poll_count} 次轮询ComfyUI历史记录...")
+                        
                         try:
                             result = loop.run_until_complete(get_comfyui_history(prompt_id))
+                            logger.debug(f"ComfyUI历史记录响应: {result}")
+                            
                             if result and "outputs" in result:
+                                logger.info("检测到ComfyUI输出结果，处理完成")
                                 break
+                            else:
+                                logger.info("ComfyUI还在处理中，继续等待...")
+                                
                         except Exception as e:
-                            logger.error(f"获取ComfyUI历史记录失败: {str(e)}")
+                            logger.error(f"第 {poll_count} 次获取ComfyUI历史记录失败: {str(e)}")
                             time.sleep(5)
                             continue
                             
-                        self.update_task_progress(task.id, 50)
+                        # 更新进度
+                        progress = min(90, 20 + (poll_count * 5))  # 从20%开始，每次增加5%，最大90%
+                        self.update_task_progress(task.id, progress)
+                        logger.info(f"更新任务进度: {progress}%")
+                        
                         time.sleep(5)
                         
                     if not result or "outputs" not in result:
-                        raise Exception("生成超时或失败")
+                        logger.error("ComfyUI处理超时或失败")
+                        logger.error(f"最终结果: {result}")
+                        raise Exception("ComfyUI处理超时或失败")
+                    
+                    # 处理结果
+                    logger.info("开始处理ComfyUI输出结果...")
+                    output_images = []
+                    
+                    try:
+                        # 解析输出图像
+                        for node_id, node_output in result["outputs"].items():
+                            logger.info(f"处理节点 {node_id} 的输出...")
+                            if "images" in node_output:
+                                for img_data in node_output["images"]:
+                                    img_filename = img_data["filename"]
+                                    img_subfolder = img_data.get("subfolder", "")
+                                    
+                                    logger.info(f"处理图像: {img_filename}, 子文件夹: {img_subfolder}")
+                                    
+                                    # 构建完整的图像路径
+                                    if img_subfolder:
+                                        img_path = os.path.join(config.COMFYUI_OUTPUT_DIR, img_subfolder, img_filename)
+                                    else:
+                                        img_path = os.path.join(config.COMFYUI_OUTPUT_DIR, img_filename)
+                                    
+                                    logger.info(f"图像源路径: {img_path}")
+                                    
+                                    if not os.path.exists(img_path):
+                                        logger.warning(f"输出图像文件不存在: {img_path}")
+                                        continue
+                                    
+                                    # 将图像复制到用户目录
+                                    user_dir_name = task.user_id.replace('@', '_at_').replace('.', '_dot_')
+                                    user_dir = os.path.join(config.USER_GENERATED_IMAGES_DIR, user_dir_name)
+                                    os.makedirs(user_dir, exist_ok=True)
+                                    
+                                    # 生成唯一文件名
+                                    import uuid
+                                    unique_filename = f"{uuid.uuid4()}.png"
+                                    user_img_path = os.path.join(user_dir, unique_filename)
+                                    
+                                    # 复制文件
+                                    import shutil
+                                    shutil.copy2(img_path, user_img_path)
+                                    logger.info(f"图像已复制到用户目录: {user_img_path}")
+                                    
+                                    # 添加到输出列表
+                                    output_images.append({
+                                        "filename": unique_filename,
+                                        "path": user_img_path
+                                    })
                         
-                    # 完成任务（简化结果处理）
-                    self.complete_task(task.id, 'completed', {"images": []})
+                        logger.info(f"共处理了 {len(output_images)} 张输出图像")
+                        
+                        if not output_images:
+                            logger.warning("没有找到任何输出图像")
+                        
+                    except Exception as e:
+                        logger.error(f"处理输出图像时发生错误: {str(e)}")
+                        # 即使图像处理失败，也不要让整个任务失败
+                        output_images = []
+                    
+                    # 保存到数据库
+                    try:
+                        logger.info("保存结果到数据库...")
+                        import sqlite3
+                        
+                        # 检查数据库配置
+                        if hasattr(config, 'DB_FILE'):
+                            db_file = config.DB_FILE
+                        else:
+                            db_file = os.path.join(config.BASE_DIR, 'image_history.db')
+                        
+                        logger.info(f"数据库文件路径: {db_file}")
+                        
+                        conn = sqlite3.connect(db_file)
+                        cursor = conn.cursor()
+                        
+                        for img in output_images:
+                            cursor.execute(
+                                "INSERT INTO image_generations (user_email, prompt, image_filename, generation_type, timestamp) VALUES (?, ?, ?, ?, datetime('now'))",
+                                (task.user_id, prompt, img["filename"], "image-to-image")
+                            )
+                            logger.info(f"保存图像记录到数据库: {img['filename']}")
+                        
+                        conn.commit()
+                        conn.close()
+                        logger.info("数据库保存成功")
+                        
+                    except Exception as e:
+                        logger.error(f"保存到数据库失败: {str(e)}")
+                        # 数据库保存失败不影响任务完成
+                    
+                    # 完成任务
+                    logger.info(f"图生图任务 {task.id} 处理完成")
+                    self.complete_task(task.id, 'completed', {"images": output_images})
                     
                 except Exception as e:
-                    logger.error(f"处理图像到图像任务 {task.id} 失败: {str(e)}")
+                    error_msg = f"处理图像到图像任务 {task.id} 失败: {str(e)}"
+                    logger.error(error_msg)
+                    logger.error(f"错误堆栈: ", exc_info=True)
                     self.update_task_status(task.id, 'failed', error=str(e))
                     return
                 

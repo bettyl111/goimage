@@ -137,32 +137,45 @@ T2I_FACE_NODE_IDS = {
 T2I_FACE_NODE_ID_LOAD_IMAGE = T2I_FACE_NODE_IDS["load_face_0"]
 T2I_FACE_NODE_ID_FACE_SWAP = T2I_FACE_NODE_IDS["face_swap"]
 
-# # --- 文生图 (Text-to-Image) 标准工作流 ---
-# # flux-text2image.json
-# TEXT_TO_IMAGE_WORKFLOW_FILE_PATH = os.path.join(WORKFLOW_DIR, "flux-text2image.json")
-# T2I_NODE_ID_PROMPT_TEXT = "256"      
-# T2I_NODE_ID_EMPTY_LATENT = "258"    # EmptyLatentImage (用于设置图像尺寸)
-# T2I_NODE_ID_KSAMPLER_SEED = "228"   # 'easy seed' 节点
-# T2I_NODE_ID_SAVE_IMAGE = "255"      # 保存图像节点
+# --- 工作流文件路径配置 ---
+WORKFLOW_DIR = WORKFLOWS_DIR
 
-# # 文生图人脸相关节点ID（根据你的ComfyUI工作流来配置）
-# # 支持最多2个人脸的节点配置
-# T2I_FACE_NODE_IDS = {
-#     "load_face_0": "270",    # 第1个人脸加载节点
-#     "load_face_1": "274",    # 第2个人脸加载节点
-#     "face_swap": "23",      # 人脸替换/融合节点
-# }
+# --- 文生图 (Text-to-Image) 标准工作流 ---
+# flux-text2image.json
+TEXT_TO_IMAGE_WORKFLOW_FILE_PATH = os.path.join(WORKFLOW_DIR, "flux-text2image.json")
+T2I_NODE_ID_PROMPT_TEXT = "256"      
+T2I_NODE_ID_EMPTY_LATENT = "258"    # EmptyLatentImage (用于设置图像尺寸)
+T2I_NODE_ID_KSAMPLER_SEED = "228"   # 'easy seed' 节点
+T2I_NODE_ID_SAVE_IMAGE = "255"      # 保存图像节点
 
-# # --- 文生图 (Text-to-Image) 带姿势参考工作流 ---
-# # flux-text2image-pose.json
-# TEXT_TO_IMAGE_POSE_WORKFLOW_FILE_PATH = os.path.join(WORKFLOW_DIR, "flux-text2image-pose.json")
-# T2I_POSE_NODE_ID_PROMPT_TEXT = "256"          
-# T2I_POSE_NODE_ID_EMPTY_LATENT = "258"       # EmptyLatentImage (用于设置图像尺寸)
-# T2I_POSE_NODE_ID_KSAMPLER_SEED = "228"        # 'easy seed' 节点
-# T2I_POSE_NODE_ID_LOAD_REFERENCE_IMAGE = "17"  # LoadImage (加载参考姿势图)
-# T2I_POSE_NODE_ID_SAVE_IMAGE = "255"           # 保存图像节点
+# --- 文生图 (Text-to-Image) 带姿势参考工作流 ---
+# flux-text2image-pose.json
+TEXT_TO_IMAGE_POSE_WORKFLOW_FILE_PATH = os.path.join(WORKFLOW_DIR, "flux-text2image-pose.json")
+T2I_POSE_NODE_ID_PROMPT_TEXT = "256"          
+T2I_POSE_NODE_ID_EMPTY_LATENT = "258"       # EmptyLatentImage (用于设置图像尺寸)
+T2I_POSE_NODE_ID_KSAMPLER_SEED = "228"        # 'easy seed' 节点
+T2I_POSE_NODE_ID_LOAD_REFERENCE_IMAGE = "17"  # LoadImage (加载参考姿势图)
+T2I_POSE_NODE_ID_SAVE_IMAGE = "255"           # 保存图像节点
+
+# --- 图生图 (Image-to-Image) 工作流 ---
+# flux-image2image.json
+IMAGE_TO_IMAGE_WORKFLOW_FILE_PATH = os.path.join(WORKFLOW_DIR, "flux-image2image.json")
+I2I_NODE_ID_PROMPT_TEXT = "256"      # 提示词节点
+I2I_NODE_ID_LOAD_INPUT_IMAGE = "17"  # 输入图像加载节点
+I2I_NODE_ID_KSAMPLER_SEED = "228"    # KSampler种子节点
+I2I_NODE_ID_SAVE_IMAGE = "255"       # 保存图像节点
+I2I_NODE_ID_IMAGE_STRENGTH = "259"   # 图像强度控制节点
 
 # 正式部署域名: ai-image-genneration.3g.net.cn
+
+# ComfyUI轮询配置
+COMFYUI_POLLING_TIMEOUT_SECONDS = 300  # ComfyUI轮询超时时间（5分钟）
+
+# 数据库配置
+DB_FILE = str(BASE_DIR / "image_history.db")
+
+# 用户图像目录配置（向后兼容）
+USER_IMAGES_BASE_DIR = str(USER_GENERATED_IMAGES_DIR)
 
 # 任务队列配置 2023.07.01 10
 TASK_QUEUE_CONFIG = {
